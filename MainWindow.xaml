@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="ScreenRecorder.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Screen Recorder">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="Root" RequestedTheme="Dark">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom title bar -->
+        <Grid x:Name="AppTitleBar" Padding="16,0,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <Grid Width="18" Height="18">
+                    <Ellipse Fill="#E81123" Width="14" Height="14" />
+                    <Ellipse Stroke="{ThemeResource TextFillColorPrimaryBrush}" StrokeThickness="1.5" />
+                </Grid>
+                <TextBlock Text="Screen Recorder" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="20,4,20,20" Spacing="8" MaxWidth="560">
+
+                <!-- Record card -->
+                <Border Style="{StaticResource CardStyle}" Padding="20">
+                    <Grid RowSpacing="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Ellipse x:Name="RecDot" Width="12" Height="12" Fill="{ThemeResource TextFillColorDisabledBrush}" />
+                                <TextBlock x:Name="StatusText" Text="Ready" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            </StackPanel>
+                            <Button x:Name="ThemeButton" HorizontalAlignment="Right" Click="ThemeButton_Click"
+                                    Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="Switch theme">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon x:Name="ThemeIcon" Glyph="&#xE708;" FontSize="14" />
+                                    <TextBlock x:Name="ThemeLabel" Text="Dark" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Grid.Row="1" x:Name="TimerText" Text="00:00:00" HorizontalAlignment="Center"
+                                   FontSize="56" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"
+                                   CharacterSpacing="40" />
+
+                        <Grid Grid.Row="2" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="RecordButton" Style="{StaticResource AccentButtonStyle}"
+                                    HorizontalAlignment="Stretch" Height="44" Click="RecordButton_Click">
+                                <Button.KeyboardAccelerators>
+                                    <KeyboardAccelerator Key="F9" />
+                                </Button.KeyboardAccelerators>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <FontIcon x:Name="RecordIcon" Glyph="&#xE7C8;" FontSize="16" />
+                                    <TextBlock x:Name="RecordLabel" Text="Start recording" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Column="1" x:Name="PauseButton" Height="44" Width="52" IsEnabled="False"
+                                    Click="PauseButton_Click" ToolTipService.ToolTip="Pause / resume (F10)">
+                                <Button.KeyboardAccelerators>
+                                    <KeyboardAccelerator Key="F10" />
+                                </Button.KeyboardAccelerators>
+                                <FontIcon x:Name="PauseIcon" Glyph="&#xE769;" FontSize="16" />
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <InfoBar x:Name="MessageBar" IsOpen="False" IsClosable="True">
+                    <InfoBar.ActionButton>
+                        <HyperlinkButton x:Name="OpenLastButton" Content="Open video" Click="OpenLastButton_Click" Visibility="Collapsed" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
+
+                <!-- Video -->
+                <TextBlock Text="Video" Style="{StaticResource SectionHeader}" />
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="SourceCombo" Header="Source" HorizontalAlignment="Stretch" />
+                            <Button Grid.Column="1" x:Name="PickButton" VerticalAlignment="Bottom" Click="PickButton_Click"
+                                    ToolTipService.ToolTip="Choose a window or screen">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE737;" FontSize="14" />
+                                    <TextBlock Text="Pick window" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="FpsCombo" Header="Frame rate" HorizontalAlignment="Stretch">
+                                <x:String>30 fps</x:String>
+                                <x:String>60 fps</x:String>
+                            </ComboBox>
+                            <ComboBox Grid.Column="1" x:Name="QualityCombo" Header="Quality" HorizontalAlignment="Stretch">
+                                <x:String>Standard</x:String>
+                                <x:String>High</x:String>
+                                <x:String>Ultra</x:String>
+                            </ComboBox>
+                            <ComboBox Grid.Column="2" x:Name="ResolutionCombo" Header="Resolution" HorizontalAlignment="Stretch">
+                                <x:String>Native</x:String>
+                                <x:String>1440p</x:String>
+                                <x:String>1080p</x:String>
+                                <x:String>720p</x:String>
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid>
+                            <TextBlock Text="Capture mouse cursor" VerticalAlignment="Center" />
+                            <ToggleSwitch x:Name="CursorToggle" HorizontalAlignment="Right" OnContent="" OffContent="" MinWidth="0" />
+                        </Grid>
+                        <Grid>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Hide this app from recordings" />
+                                <TextBlock Text="Keeps the recorder window out of the video" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <ToggleSwitch x:Name="HideToggle" HorizontalAlignment="Right" OnContent="" OffContent="" MinWidth="0"
+                                          Toggled="HideToggle_Toggled" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Audio -->
+                <TextBlock Text="System audio" Style="{StaticResource SectionHeader}" />
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="14">
+                        <Grid>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Record system audio" />
+                                <TextBlock x:Name="DeviceText" Text="â€”" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <ToggleSwitch x:Name="AudioToggle" HorizontalAlignment="Right" OnContent="" OffContent="" MinWidth="0"
+                                          Toggled="AudioToggle_Toggled" />
+                        </Grid>
+
+                        <StackPanel x:Name="AudioPanel" Spacing="14">
+                            <StackPanel Spacing="2">
+                                <Grid>
+                                    <TextBlock Text="Volume boost" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+                                        <TextBlock x:Name="BoostText" Text="100%" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <Button x:Name="ResetBoostButton" Style="{StaticResource SubtleButtonStyle}" Padding="6,2"
+                                                Click="ResetBoostButton_Click" ToolTipService.ToolTip="Reset to 100%">
+                                            <FontIcon Glyph="&#xE777;" FontSize="12" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                                <Slider x:Name="BoostSlider" Minimum="0" Maximum="500" StepFrequency="5" TickFrequency="100"
+                                        TickPlacement="Outside" ValueChanged="BoostSlider_ValueChanged" />
+                            </StackPanel>
+
+                            <!-- Level meter -->
+                            <StackPanel Spacing="6">
+                                <Grid>
+                                    <TextBlock Text="Level (after boost)" Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock x:Name="ClipText" Text="LIMITING" HorizontalAlignment="Right" Opacity="0"
+                                               Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold" Foreground="#FF6B6B" />
+                                </Grid>
+                                <Border Height="8" CornerRadius="4"><Grid>
+                                    <Rectangle>
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#2EC27E" Offset="0" />
+                                                <GradientStop Color="#2EC27E" Offset="0.6" />
+                                                <GradientStop Color="#F6D32D" Offset="0.82" />
+                                                <GradientStop Color="#E01B24" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                    <Rectangle x:Name="MeterMask" Fill="{ThemeResource ControlStrongFillColorDisabledBrush}"
+                                               RenderTransformOrigin="1,0.5">
+                                        <Rectangle.RenderTransform>
+                                            <ScaleTransform x:Name="MeterScale" ScaleX="1" />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Grid></Border>
+                            </StackPanel>
+
+                            <Grid>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Prevent clipping" />
+                                    <TextBlock Text="Soft limiter keeps boosted audio from distorting" Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                                <ToggleSwitch x:Name="LimiterToggle" HorizontalAlignment="Right" OnContent="" OffContent="" MinWidth="0"
+                                              Toggled="LimiterToggle_Toggled" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Output -->
+                <TextBlock Text="Output" Style="{StaticResource SectionHeader}" />
+                <Border Style="{StaticResource CardStyle}">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Save to" />
+                            <TextBlock x:Name="FolderText" Style="{StaticResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" x:Name="ChangeFolderButton" Content="Change" Click="ChangeFolderButton_Click" />
+                        <Button Grid.Column="2" Click="OpenFolderButton_Click" ToolTipService.ToolTip="Open folder">
+                            <FontIcon Glyph="&#xE838;" FontSize="14" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>
